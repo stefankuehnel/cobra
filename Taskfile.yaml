@@ -1,0 +1,116 @@
+# https://taskfile.dev
+
+version: '3'
+
+env:
+  CGO_ENABLED: "0"
+
+tasks:
+  default:
+    desc: "Run default tasks"
+    cmds:
+      - task: "lint"
+      - task: "build"
+      - task: "test:coverage"
+      - defer: { 
+          task: "clean"
+        }
+
+  run:
+    desc: "Run project"
+    cmds:
+      - task: "nix:run"
+
+  go:run:
+    desc: "Run project with Go Run"
+    cmds:
+      - "go run . {{.CLI_ARGS}}"
+
+  nix:run:
+    desc: "Run project with Nix Run"
+    cmds:
+      - "nix run . -- {{.CLI_ARGS}}"
+
+  build:
+    desc: "Build project"
+    cmds:
+      - task: "go:build"
+      - task: "nix:build"
+
+  go:build:
+    desc: "Build project with Go Build"
+    cmds:
+      - "go build -o cobra ."
+  
+  nix:build:
+    desc: "Build project with Nix Build"
+    cmds:
+      - "nix build --no-link --print-out-paths ."
+
+  test:
+    desc: "Test project"
+    cmds:
+      - task: "go:test"
+
+  go:test:
+    desc: "Test project with Go Test"
+    cmds:
+      - "go test ./..."
+
+  test:coverage:
+    desc: "Test project with coverage"
+    cmds:
+      - task: "go:test:coverage"
+
+  go:test:coverage:
+    desc: "Test project with Go Test and with coverage"
+    cmds:
+      - "go test -coverprofile=coverage.out ./..."
+
+  format:
+    desc: "Format project"
+    cmds:
+      - task: "go:format"
+      - task: "nix:format"
+
+  go:format:
+    desc: "Format project with Go Format"
+    cmds:
+      - "go fmt ./..."
+
+  nix:format:
+    desc: "Format project with Nix"
+    cmds:
+      - "nix fmt"
+
+  lint:
+    desc: "Lint project"
+    cmds:
+      - task: "golangci:lint"
+      - task: "go:lint"
+
+  go:lint:
+    desc: "Lint project with Go Vet"
+    cmds:
+      - "go vet ./..."
+
+  golangci:lint:
+    desc: "Lint project with golangci-lint"
+    cmds:
+      - "golangci-lint run ./..."
+
+  clean:
+    desc: "Clean project"
+    cmds:
+      - task: "go:clean"
+      - task: "go:test:coverage:clean"
+
+  go:clean:
+    desc: "Clean Go artifacts"
+    cmds:
+      - "go clean"
+
+  go:test:coverage:clean:
+    desc: "Clean Go test coverage artifacts"
+    cmds:
+      - "rm -rf coverage.out"
